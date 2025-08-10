@@ -12,7 +12,7 @@ WINDOW_SECONDS = 10
 GROQ_LINE_LIMIT = 50
 LINE_TRUNCATE_LEN = 200
 MAX_SPIKES_BEFORE_BLOCK = 3
-GROQ_API_KEY = "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"
+GROQ_API_KEY = xxxx
 TCPDUMP_COMMAND = ["sudo", "tcpdump", "-l", "-n", "tcp port 7777"]
 
 # --- Tracking ---
